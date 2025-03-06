@@ -10,12 +10,15 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Brick Breaker")
 
 # Color definitions
-WHITE = (255, 255, 255)
+WHITE = (244, 244, 244)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 GRAY = (128, 128, 128)
+MUSTARD = (240, 165, 0)
+ORANGE = (207, 117, 0)
+BACKGROUND_COLOR = (30, 30, 30)  # Dark gray background
 
 # Paddle setup
 PADDLE_WIDTH = 100
@@ -37,22 +40,24 @@ BRICK_COLS = 8
 BRICK_WIDTH = WIDTH // BRICK_COLS - 5
 BRICK_HEIGHT = 20
 bricks = []
+colors = [MUSTARD, ORANGE, GREEN, BLUE, RED]  # Different colors for each row
 for row in range(BRICK_ROWS):
     for col in range(BRICK_COLS):
-        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 5, BRICK_WIDTH, BRICK_HEIGHT))
+        brick_color = colors[row % len(colors)]
+        bricks.append((pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 5, BRICK_WIDTH, BRICK_HEIGHT), brick_color))
 
 # Function to display "Press SPACE to Start" message
 def show_press_space_message():
-    font = pygame.font.SysFont(None, 50)
-    text = font.render("Press SPACE to Start", True, GRAY)
-    text.set_alpha(100)
+    font = pygame.font.SysFont("comicsansms", 50)
+    text = font.render("Press SPACE to Start", True, ORANGE)
+    text.set_alpha(150) 
     screen.blit(text, ((WIDTH - text.get_width()) // 2, HEIGHT // 2))
 
 # Main game loop
 running = True
 game_started = False
 while running:
-    screen.fill(BLACK)
+    screen.fill(BACKGROUND_COLOR)  
 
     # Event handling
     for event in pygame.event.get():
@@ -91,14 +96,14 @@ while running:
 
         # Ball collision with bricks
         ball_rect = pygame.Rect(ball_x - BALL_RADIUS, ball_y - BALL_RADIUS, BALL_RADIUS * 2, BALL_RADIUS * 2)
-        for brick in bricks[:]:
+        for brick, color in bricks[:]:
             if brick.colliderect(ball_rect):
                 # Determine collision side
                 if abs(ball_y - brick.bottom) < BALL_RADIUS or abs(ball_y - brick.top) < BALL_RADIUS:
                     ball_dy *= -1  # Bounce vertically
                 else:
                     ball_dx *= -1  # Bounce horizontally
-                bricks.remove(brick)
+                bricks.remove((brick, color))
                 break
 
         # Game Over if ball falls below the screen
@@ -108,8 +113,8 @@ while running:
         # Draw paddle, ball, and bricks
         pygame.draw.rect(screen, BLUE, (paddle_x, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT))
         pygame.draw.circle(screen, RED, (ball_x, ball_y), BALL_RADIUS)
-        for brick in bricks:
-            pygame.draw.rect(screen, GREEN, brick)
+        for brick, color in bricks:
+            pygame.draw.rect(screen, color, brick)
 
     # Update the display
     pygame.display.flip()
