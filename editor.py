@@ -19,6 +19,7 @@ class Editor(tk.Canvas):
         "p": "#9b59b6",
         "y": "#f1c40f",
         "o": "#e67e22",
+        "x": "#95a5a6",  # grey color for unbreakable brick
     }
 
     # Screen properties
