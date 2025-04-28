@@ -1,6 +1,8 @@
 import pygame
 import random
 import math
+import uuid
+import time
 
 # Initialize pygame
 pygame.init()
@@ -8,7 +10,11 @@ pygame.init()
 # Screen setup
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Brick Breaker")
+pygame.display.set_caption("CRACKSHOT")
+
+# Font setup
+TITLE_FONT = pygame.font.Font(None, 74)
+SUBTITLE_FONT = pygame.font.Font(None, 36)
 
 # Color definitions
 WHITE = (244, 244, 244)
@@ -22,7 +28,45 @@ ORANGE = (207, 117, 0)
 PURPLE = (128, 0, 128)
 YELLOW = (255, 255, 0)
 TEAL = (0, 128, 128)
-BACKGROUND_COLOR = (30, 30, 30)  # Dark gray background
+BACKGROUND_COLOR = (30, 30, 30)  
+
+# Function to generate unique game ID
+def generate_game_id():
+    return str(uuid.uuid4())[:8].upper()
+
+# Function to show welcome screen
+def show_welcome_screen():
+    game_id = generate_game_id()
+    welcome = True
+    
+    while welcome:
+        screen.fill(BACKGROUND_COLOR)
+        
+        # Draw title
+        title_text = TITLE_FONT.render("CRACKSHOT", True, MUSTARD)
+        title_rect = title_text.get_rect(center=(WIDTH//2, HEIGHT//3))
+        screen.blit(title_text, title_rect)
+        
+        # Draw game ID
+        id_text = SUBTITLE_FONT.render(f"Game ID: {game_id}", True, WHITE)
+        id_rect = id_text.get_rect(center=(WIDTH//2, HEIGHT//2))
+        screen.blit(id_text, id_rect)
+        
+        # Draw start instruction
+        start_text = SUBTITLE_FONT.render("Press SPACE to Start", True, WHITE)
+        start_rect = start_text.get_rect(center=(WIDTH//2, HEIGHT*2//3))
+        screen.blit(start_text, start_rect)
+        
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False, None
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True, game_id
+    
+    return False, None
 
 # Color mapping for level files
 BRICK_COLORS = {
@@ -33,11 +77,11 @@ BRICK_COLORS = {
     'p': PURPLE,
     'y': YELLOW,
     't': TEAL,
-    'x': (149, 165, 166)  # Grey color for unbreakable bricks
+    'x': (149, 165, 166) 
 }
 
 # Brick properties
-UNBREAKABLE = 'x'  # Identifier for unbreakable bricks
+UNBREAKABLE = 'x'  
 
 # Paddle setup
 PADDLE_WIDTH = 100
@@ -49,7 +93,7 @@ paddle_speed = 7
 # Ball setup
 BALL_RADIUS = 8
 ball_x = WIDTH // 2
-ball_y = HEIGHT - 70  # Position above paddle
+ball_y = HEIGHT - 70 
 ball_dx = 0
 ball_dy = 0
 
@@ -59,7 +103,7 @@ DIFFICULTY_SPEEDS = {
     'NORMAL': 5,
     'HARD': 7
 }
-difficulty = 'NORMAL'  # Default difficulty
+difficulty = 'NORMAL' 
 initial_ball_speed = DIFFICULTY_SPEEDS[difficulty]
 
 # Function to change difficulty
@@ -82,9 +126,9 @@ def show_difficulty_menu():
         screen.blit(s, (0, HEIGHT - (i * 2)))
     
     # Draw title with enhanced shadow effect
-    title_y = HEIGHT // 8  # Moved higher up
+    title_y = HEIGHT // 8  
     font = pygame.font.SysFont("comicsansms", 72)
-    for offset in range(3):  # Multiple layers of shadow
+    for offset in range(3):  
         shadow_title = font.render("Select Difficulty", True, (20 + offset * 20, 20 + offset * 20, 20 + offset * 20))
         screen.blit(shadow_title, ((WIDTH - shadow_title.get_width()) // 2 + 3 - offset, title_y + 3 - offset))
     title = font.render("Select Difficulty", True, ORANGE)
@@ -95,7 +139,7 @@ def show_difficulty_menu():
     button_height = 80
     spacing = 40
     total_height = len(difficulties) * (button_height + spacing)
-    start_y = (HEIGHT - total_height) // 2 + 80  # Adjusted for better vertical spacing
+    start_y = (HEIGHT - total_height) // 2 + 80         
     
     selected = None
     mouse_pos = pygame.mouse.get_pos()
@@ -257,42 +301,90 @@ def launch_ball(level):
 
 # Function to check collision with obstacles
 def check_obstacle_collision(ball_rect):
-    global ball_dx, ball_dy, ball_x, ball_y
+    global ball_x, ball_y, ball_dx, ball_dy
     
     for obstacle, color in obstacles:
         if ball_rect.colliderect(obstacle):
-            # Determine which side of the obstacle was hit
-            left_overlap = (obstacle.right - ball_rect.left)
-            right_overlap = (ball_rect.right - obstacle.left)
-            top_overlap = (obstacle.bottom - ball_rect.top)
-            bottom_overlap = (ball_rect.bottom - obstacle.top)
+            # Calculate overlaps for precise collision direction
+            overlaps = {
+                'left': obstacle.right - ball_rect.left,
+                'right': ball_rect.right - obstacle.left,
+                'top': obstacle.bottom - ball_rect.top,
+                'bottom': ball_rect.bottom - obstacle.top
+            }
             
-            # Find the smallest overlap to determine collision direction
-            min_overlap = min(left_overlap, right_overlap, top_overlap, bottom_overlap)
+            # Find the smallest overlap to determine collision side
+            min_overlap_side = min(overlaps, key=overlaps.get)
             
-            if min_overlap == left_overlap or min_overlap == right_overlap:
-                ball_dx = -ball_dx  # Horizontal collision
-                # Adjust position to prevent sticking
-                if min_overlap == left_overlap:
-                    ball_x = obstacle.right + BALL_RADIUS
-                else:
-                    ball_x = obstacle.left - BALL_RADIUS
+            # Reflect ball based on collision side
+            if min_overlap_side in ['left', 'right']:
+                # Horizontal collision (side hit)
+                ball_dx = -ball_dx
+                ball_x = obstacle.right + BALL_RADIUS if min_overlap_side == 'left' else obstacle.left - BALL_RADIUS
             else:
-                ball_dy = -ball_dy  # Vertical collision
-                # Adjust position to prevent sticking
-                if min_overlap == top_overlap:
-                    ball_y = obstacle.bottom + BALL_RADIUS
-                else:
-                    ball_y = obstacle.top - BALL_RADIUS
+                # Vertical collision (top/bottom hit)
+                ball_dy = -ball_dy
+                ball_y = obstacle.bottom + BALL_RADIUS if min_overlap_side == 'top' else obstacle.top - BALL_RADIUS
             
             return True
     
     return False
 
+def check_brick_collision(ball_rect, bricks):
+    global ball_x, ball_y
+    collision_occurred = False
+    score_increment = 0
+    new_ball_dx, new_ball_dy = ball_dx, ball_dy
+
+    for i, (brick, color, unbreakable) in enumerate(bricks[:]):
+        if ball_rect.colliderect(brick):
+            collision_occurred = True
+            
+            if not unbreakable:
+                bricks.pop(i)
+                score_increment = 10 * level
+            
+            # Calculate overlaps for precise collision direction
+            overlaps = {
+                'left': brick.right - ball_rect.left,
+                'right': ball_rect.right - brick.left,
+                'top': brick.bottom - ball_rect.top,
+                'bottom': ball_rect.bottom - brick.top
+            }
+            
+            # Find the smallest overlap to determine collision side
+            min_overlap_side = min(overlaps, key=overlaps.get)
+            
+            # Reflect ball based on collision side
+            if min_overlap_side in ['left', 'right']:
+                # Horizontal collision (side hit)
+                new_ball_dx = -ball_dx
+                ball_x = brick.right + BALL_RADIUS if min_overlap_side == 'left' else brick.left - BALL_RADIUS
+            else:
+                # Vertical collision (top/bottom hit)
+                new_ball_dy = -ball_dy
+                ball_y = brick.bottom + BALL_RADIUS if min_overlap_side == 'top' else brick.top - BALL_RADIUS
+            
+            break  # Only handle one brick collision per frame
+    
+    return collision_occurred, bricks, score_increment, new_ball_dx, new_ball_dy
+
+def check_level_complete(bricks):
+    # Check if there are any breakable bricks left
+    for brick, color, unbreakable in bricks:
+        if not unbreakable:
+            return False
+    return True
+
 # Main game loop
 running = True
 game_started = False
 game_over = False
+current_game_id = None
+
+# Show welcome screen first
+running, current_game_id = show_welcome_screen()
+selecting_difficulty = running
 score = 0
 level = 1
 lives = 3
@@ -439,37 +531,24 @@ while running:
         # Ball collision with obstacles
         check_obstacle_collision(ball_rect)
 
-        # Ball collision with bricks
-        collision_occurred = False
-        for i, (brick, color, unbreakable) in enumerate(bricks[:]):
-            if ball_rect.colliderect(brick) and not collision_occurred:
-                collision_occurred = True
-                if not unbreakable:
-                    bricks.pop(i)
-                    score += 10 * level  
-                
-                # Determine which side of the brick was hit
-                left_overlap = (brick.right - ball_rect.left)
-                right_overlap = (ball_rect.right - brick.left)
-                top_overlap = (brick.bottom - ball_rect.top)
-                bottom_overlap = (ball_rect.bottom - brick.top)
-                
-                # Find the smallest overlap to determine collision direction
-                min_overlap = min(left_overlap, right_overlap, top_overlap, bottom_overlap)
-                
-                if min_overlap == left_overlap or min_overlap == right_overlap:
-                    ball_dx = -ball_dx  
-                    if min_overlap == left_overlap:
-                        ball_x = brick.right + BALL_RADIUS
-                    else:
-                        ball_x = brick.left - BALL_RADIUS
-                else:
-                    ball_dy = -ball_dy  
-                    if min_overlap == top_overlap:
-                        ball_y = brick.bottom + BALL_RADIUS
-                    else:
-                        ball_y = brick.top - BALL_RADIUS
-                        
+        # Check brick collision
+        collision, bricks, score_bonus, ball_dx, ball_dy = check_brick_collision(ball_rect, bricks)
+        if collision:
+            score += score_bonus
+            
+            # Check if level is complete (all breakable bricks destroyed)
+            if check_level_complete(bricks):
+                level += 1
+                bricks = initialize_bricks(level)
+                obstacles = initialize_obstacles(level)
+                reset_ball()
+                # Show level up message
+                font = pygame.font.SysFont("comicsansms", 50)
+                text = font.render(f"Level {level}!", True, GREEN)
+                screen.blit(text, ((WIDTH - text.get_width()) // 2, HEIGHT // 2))
+                pygame.display.flip()
+                pygame.time.delay(1000)  # Pause for a second
+
         # Ball falls below screen - lose a life
         if ball_y + BALL_RADIUS >= HEIGHT:
             lives -= 1
@@ -483,19 +562,6 @@ while running:
                 pygame.display.flip()
                 pygame.time.delay(1000)  # Pause for a second
                 reset_ball()
-
-        # Level up logic (if all bricks are cleared)
-        if len(bricks) == 0:
-            level += 1
-            bricks = initialize_bricks(level)
-            obstacles = initialize_obstacles(level)
-            reset_ball()
-            # Show level up message
-            font = pygame.font.SysFont("comicsansms", 50)
-            text = font.render(f"Level {level}!", True, GREEN)
-            screen.blit(text, ((WIDTH - text.get_width()) // 2, HEIGHT // 2))
-            pygame.display.flip()
-            pygame.time.delay(1000)  
 
         # Show hint if ball not launched
         if ball_dx == 0 and ball_dy == 0 and not game_over:
