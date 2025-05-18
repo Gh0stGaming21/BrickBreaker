@@ -1,8 +1,38 @@
 [
   {
+    "game_id": "4C99CC27",
+    "score": 1350,
+    "difficulty": "EASY",
+    "date": "2025-05-17 11:19"
+  },
+  {
+    "game_id": "DB034829",
+    "score": 810,
+    "difficulty": "EASY",
+    "date": "2025-05-18 17:10"
+  },
+  {
+    "game_id": "4004E6E7",
+    "score": 590,
+    "difficulty": "EASY",
+    "date": "2025-05-17 08:34"
+  },
+  {
     "game_id": "F3B7A2FF",
     "score": 120,
     "difficulty": "EASY",
     "date": "2025-05-12 23:06"
+  },
+  {
+    "game_id": "1CA656FE",
+    "score": 110,
+    "difficulty": "EASY",
+    "date": "2025-05-17 10:01"
+  },
+  {
+    "game_id": "C991B126",
+    "score": 20,
+    "difficulty": "EASY",
+    "date": "2025-05-18 16:40"
   }
 ]

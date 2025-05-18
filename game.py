@@ -22,13 +22,15 @@ pygame.display.set_caption("CRACKSHOT ARCADE")
 try:
     # Try to load arcade-style fonts if they exist in the system
     TITLE_FONT = pygame.font.SysFont("Press Start 2P", 50)
-    SUBTITLE_FONT = pygame.font.SysFont("Press Start 2P", 24)
-    REGULAR_FONT = pygame.font.SysFont("Press Start 2P", 18)
+    SUBTITLE_FONT = pygame.font.SysFont("Press Start 2P", 26)  # Increased for readability
+    REGULAR_FONT = pygame.font.SysFont("Press Start 2P", 20)  # Increased for readability
+    SMALL_FONT = pygame.font.SysFont("Press Start 2P", 16)  # Increased for readability
 except:
     # Fallback to default fonts with pixel-like appearance
     TITLE_FONT = pygame.font.Font(None, 74)
-    SUBTITLE_FONT = pygame.font.Font(None, 36)
-    REGULAR_FONT = pygame.font.Font(None, 24)
+    SUBTITLE_FONT = pygame.font.Font(None, 40)  # Increased for readability
+    REGULAR_FONT = pygame.font.Font(None, 30)  # Increased for readability
+    SMALL_FONT = pygame.font.Font(None, 24)  # Increased for readability
 
 # Neon arcade colors
 WHITE = (244, 244, 244)
@@ -55,6 +57,460 @@ for i in range(0, HEIGHT, 4):  # Draw scanlines every 4 pixels
 # Function to generate unique game ID
 def generate_game_id():
     return str(uuid.uuid4())[:8].upper()
+
+# Function to show game manual (page 1 - Controls and Objective)
+def show_game_manual_page1():
+    manual_active = True
+    
+    # Animation variables
+    title_glow = 0
+    glow_direction = 1
+    start_time = pygame.time.get_ticks()
+    
+    while manual_active:
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - start_time
+        
+        # Create a gradient background
+        screen.fill(BACKGROUND_COLOR)
+        
+        # Draw a more modern frame with rounded corners
+        # Outer frame (dark with glow)
+        frame_color = (40, 40, 60)
+        inner_color = (20, 20, 30)
+        frame_rect = pygame.Rect(30, 30, WIDTH-60, HEIGHT-60)
+        pygame.draw.rect(screen, frame_color, frame_rect, border_radius=15)
+        
+        # Inner frame (darker)
+        inner_rect = pygame.Rect(40, 40, WIDTH-80, HEIGHT-80)
+        pygame.draw.rect(screen, inner_color, inner_rect, border_radius=10)
+        
+        # Animated neon border with pulse effect
+        glow_value = 128 + int(127 * math.sin(elapsed_time / 500))
+        glow_color = (0, glow_value, glow_value)  # Cyan-ish glow
+        pygame.draw.rect(screen, glow_color, inner_rect, 3, border_radius=10)
+        
+        # Draw header with background
+        header_rect = pygame.Rect(60, 50, WIDTH-120, 50)
+        pygame.draw.rect(screen, (60, 60, 100), header_rect, border_radius=10)
+        
+        # Draw title with shadow effect
+        title_shadow = TITLE_FONT.render("GAME CONTROLS", True, (0, 0, 0))
+        title_text = TITLE_FONT.render("GAME CONTROLS", True, YELLOW)
+        title_rect = title_text.get_rect(center=(WIDTH//2, 75))
+        screen.blit(title_shadow, (title_rect.x+2, title_rect.y+2))
+        screen.blit(title_text, title_rect)
+        
+        # Page indicator
+        page_text = SMALL_FONT.render("Page 1/3", True, WHITE)
+        screen.blit(page_text, (WIDTH-120, 60))
+        
+        # Content sections with visual separation
+        # Section 1: Objective
+        section_y = 120
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 80)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("OBJECTIVE", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Section content
+        content_lines = [
+            "• Break all bricks to advance levels",
+            "• Get the highest score possible"
+        ]
+        
+        line_y = section_y + 35
+        for line in content_lines:
+            line_text = REGULAR_FONT.render(line, True, WHITE)
+            line_rect = line_text.get_rect(midtop=(WIDTH//2, line_y))
+            screen.blit(line_text, line_rect)
+            line_y += 30
+        
+        # Section 2: Controls
+        section_y = 220
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 160)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("CONTROLS", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Section content with icons
+        control_lines = [
+            ("LEFT/RIGHT or A/D", "Move paddle"),
+            ("SPACE", "Launch ball"),
+            ("P", "Pause game"),
+            ("ESC", "Return to menu")
+        ]
+        
+        line_y = section_y + 35
+        for key, action in control_lines:
+            # Key box with 3D effect
+            key_text = REGULAR_FONT.render(key, True, YELLOW)
+            key_width = key_text.get_width() + 20
+            key_rect = pygame.Rect(WIDTH//2 - 150 - key_width//2, line_y-5, key_width, 30)
+            
+            # Draw key background with 3D effect
+            pygame.draw.rect(screen, (80, 80, 100), key_rect, border_radius=5)
+            pygame.draw.rect(screen, (100, 100, 120), key_rect, 2, border_radius=5)
+            
+            # Draw key text
+            key_text_rect = key_text.get_rect(center=key_rect.center)
+            screen.blit(key_text, key_text_rect)
+            
+            # Draw action text
+            action_text = REGULAR_FONT.render(action, True, CYAN)
+            action_rect = action_text.get_rect(midleft=(WIDTH//2 - 50, line_y + 10))
+            screen.blit(action_text, action_rect)
+            
+            line_y += 30
+        
+        # Navigation hint with animation
+        hint_alpha = 128 + int(127 * math.sin(elapsed_time / 300))
+        hint_color = (0, 255, 0, hint_alpha)
+        hint_text = SUBTITLE_FONT.render("PRESS SPACE FOR NEXT PAGE", True, hint_color)
+        hint_rect = hint_text.get_rect(midbottom=(WIDTH//2, HEIGHT - 50))
+        screen.blit(hint_text, hint_rect)
+        
+        # Apply subtle scanlines for retro effect
+        screen.blit(scanlines, (0, 0))
+        
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return show_game_manual_page2()  # Go to page 2
+                elif event.key == pygame.K_ESCAPE:
+                    return False
+        
+        # Control the animation speed
+        pygame.time.delay(20)
+    
+    return False
+
+# Function to show game manual (page 2 - Brick Types and Difficulty)
+def show_game_manual_page2():
+    manual_active = True
+    
+    # Animation variables
+    start_time = pygame.time.get_ticks()
+    
+    while manual_active:
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - start_time
+        
+        # Create a gradient background
+        screen.fill(BACKGROUND_COLOR)
+        
+        # Draw a more modern frame with rounded corners
+        # Outer frame (dark with glow)
+        frame_color = (40, 40, 60)
+        inner_color = (20, 20, 30)
+        frame_rect = pygame.Rect(30, 30, WIDTH-60, HEIGHT-60)
+        pygame.draw.rect(screen, frame_color, frame_rect, border_radius=15)
+        
+        # Inner frame (darker)
+        inner_rect = pygame.Rect(40, 40, WIDTH-80, HEIGHT-80)
+        pygame.draw.rect(screen, inner_color, inner_rect, border_radius=10)
+        
+        # Animated neon border with pulse effect
+        glow_value = 128 + int(127 * math.sin(elapsed_time / 500))
+        glow_color = (0, glow_value, glow_value)  # Cyan-ish glow
+        pygame.draw.rect(screen, glow_color, inner_rect, 3, border_radius=10)
+        
+        # Draw header with background
+        header_rect = pygame.Rect(60, 50, WIDTH-120, 50)
+        pygame.draw.rect(screen, (60, 60, 100), header_rect, border_radius=10)
+        
+        # Draw title with shadow effect
+        title_shadow = TITLE_FONT.render("GAME ELEMENTS", True, (0, 0, 0))
+        title_text = TITLE_FONT.render("GAME ELEMENTS", True, YELLOW)
+        title_rect = title_text.get_rect(center=(WIDTH//2, 75))
+        screen.blit(title_shadow, (title_rect.x+2, title_rect.y+2))
+        screen.blit(title_text, title_rect)
+        
+        # Page indicator
+        page_text = SMALL_FONT.render("Page 2/3", True, WHITE)
+        screen.blit(page_text, (WIDTH-120, 60))
+        
+        # Section 1: Scoring
+        section_y = 120
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 100)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("SCORING", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Section content
+        scoring_lines = [
+            "• Bricks give points based on level",
+            "• Level completion gives bonus points",
+            "• Press H to view high scores"
+        ]
+        
+        line_y = section_y + 35
+        for line in scoring_lines:
+            line_text = REGULAR_FONT.render(line, True, WHITE)
+            line_rect = line_text.get_rect(midtop=(WIDTH//2, line_y))
+            screen.blit(line_text, line_rect)
+            line_y += 25
+        
+        # Section 2: Brick Types
+        section_y = 230
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 90)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("BRICK TYPES", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Draw brick examples with descriptions
+        brick_types = [
+            (BLUE, "Standard - Break in one hit"),
+            (GRAY, "Unbreakable - Acts as obstacle")
+        ]
+        
+        brick_y = section_y + 35
+        for color, description in brick_types:
+            # Draw brick example
+            brick_rect = pygame.Rect(WIDTH//2 - 180, brick_y, 40, 20)
+            pygame.draw.rect(screen, color, brick_rect)
+            pygame.draw.rect(screen, WHITE, brick_rect, 1)  # White border
+            
+            # Draw description
+            desc_text = REGULAR_FONT.render(description, True, CYAN)
+            desc_rect = desc_text.get_rect(midleft=(WIDTH//2 - 130, brick_y + 10))
+            screen.blit(desc_text, desc_rect)
+            
+            brick_y += 30
+        
+        # Section 3: Difficulty Levels
+        section_y = 330
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 120)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("DIFFICULTY LEVELS", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Difficulty descriptions with visual indicators
+        difficulty_levels = [
+            (GREEN, "EASY", "Slower ball, wider paddle"),
+            (YELLOW, "NORMAL", "Balanced gameplay"),
+            (RED, "HARD", "Faster ball, narrower paddle")
+        ]
+        
+        diff_y = section_y + 35
+        for color, level, description in difficulty_levels:
+            # Draw difficulty indicator
+            diff_rect = pygame.Rect(WIDTH//2 - 180, diff_y, 15, 15)
+            pygame.draw.rect(screen, color, diff_rect, border_radius=7)
+            
+            # Draw level name
+            level_text = REGULAR_FONT.render(level, True, color)
+            level_rect = level_text.get_rect(midleft=(WIDTH//2 - 155, diff_y + 8))
+            screen.blit(level_text, level_rect)
+            
+            # Draw description
+            desc_text = REGULAR_FONT.render(description, True, WHITE)
+            desc_rect = desc_text.get_rect(midleft=(WIDTH//2 - 70, diff_y + 8))
+            screen.blit(desc_text, desc_rect)
+            
+            diff_y += 25
+        
+        # Navigation hint with animation
+        hint_alpha = 128 + int(127 * math.sin(elapsed_time / 300))
+        hint_color = (0, 255, 0, hint_alpha)
+        hint_text = SUBTITLE_FONT.render("PRESS SPACE FOR NEXT PAGE", True, hint_color)
+        hint_rect = hint_text.get_rect(midbottom=(WIDTH//2, HEIGHT - 50))
+        screen.blit(hint_text, hint_rect)
+        
+        # Apply subtle scanlines for retro effect
+        screen.blit(scanlines, (0, 0))
+        
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return show_game_manual_page3()  # Go to page 3
+                elif event.key == pygame.K_ESCAPE:
+                    return False
+        
+        # Control the animation speed
+        pygame.time.delay(20)
+    
+    return False
+
+# Function to show game manual (page 3 - Tips and Power-ups)
+def show_game_manual_page3():
+    manual_active = True
+    
+    # Animation variables
+    start_time = pygame.time.get_ticks()
+    
+    while manual_active:
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - start_time
+        
+        # Create a gradient background
+        screen.fill(BACKGROUND_COLOR)
+        
+        # Draw a more modern frame with rounded corners
+        # Outer frame (dark with glow)
+        frame_color = (40, 40, 60)
+        inner_color = (20, 20, 30)
+        frame_rect = pygame.Rect(30, 30, WIDTH-60, HEIGHT-60)
+        pygame.draw.rect(screen, frame_color, frame_rect, border_radius=15)
+        
+        # Inner frame (darker)
+        inner_rect = pygame.Rect(40, 40, WIDTH-80, HEIGHT-80)
+        pygame.draw.rect(screen, inner_color, inner_rect, border_radius=10)
+        
+        # Animated neon border with pulse effect
+        glow_value = 128 + int(127 * math.sin(elapsed_time / 500))
+        glow_color = (0, glow_value, glow_value)  # Cyan-ish glow
+        pygame.draw.rect(screen, glow_color, inner_rect, 3, border_radius=10)
+        
+        # Draw header with background
+        header_rect = pygame.Rect(60, 50, WIDTH-120, 50)
+        pygame.draw.rect(screen, (60, 60, 100), header_rect, border_radius=10)
+        
+        # Draw title with shadow effect
+        title_shadow = TITLE_FONT.render("POWER-UPS & TIPS", True, (0, 0, 0))
+        title_text = TITLE_FONT.render("POWER-UPS & TIPS", True, YELLOW)
+        title_rect = title_text.get_rect(center=(WIDTH//2, 75))
+        screen.blit(title_shadow, (title_rect.x+2, title_rect.y+2))
+        screen.blit(title_text, title_rect)
+        
+        # Page indicator
+        page_text = SMALL_FONT.render("Page 3/3", True, WHITE)
+        screen.blit(page_text, (WIDTH-120, 60))
+        
+        # Section 1: Basic Power-ups
+        section_y = 120
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 130)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("POWER-UPS", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Power-up examples with descriptions
+        powerups = [
+            (GREEN, "Extends paddle (12s)"),
+            (RED, "Speeds up ball (10s)"),
+            (BLUE, "Extra life (instant)"),
+            (YELLOW, "Multi-ball (15s)"),
+            (PURPLE, "Slows ball (10s)"),
+            (CYAN, "Ghost ball (8s)"),
+            ((255, 0, 255), "Magnetic paddle (10s)")
+        ]
+        
+        powerup_y = section_y + 35
+        for color, description in powerups:
+            # Draw power-up example
+            powerup_rect = pygame.Rect(WIDTH//2 - 180, powerup_y, 20, 20)
+            pygame.draw.rect(screen, color, powerup_rect, border_radius=5)
+            pygame.draw.rect(screen, WHITE, powerup_rect, 1, border_radius=5)  # White border
+            
+            # Draw description
+            desc_text = REGULAR_FONT.render(description, True, WHITE)
+            desc_rect = desc_text.get_rect(midleft=(WIDTH//2 - 150, powerup_y + 10))
+            screen.blit(desc_text, desc_rect)
+            
+            powerup_y += 25
+        
+        # Section 2: Tips
+        section_y = 260
+        section_rect = pygame.Rect(60, section_y-10, WIDTH-120, 130)
+        pygame.draw.rect(screen, (50, 50, 70, 180), section_rect, border_radius=8)
+        
+        # Section header
+        header_text = SUBTITLE_FONT.render("TIPS & STRATEGIES", True, GREEN)
+        header_rect = header_text.get_rect(midtop=(WIDTH//2, section_y))
+        screen.blit(header_text, header_rect)
+        
+        # Tips with icons
+        tips = [
+            "Aim for brick corners for unpredictable bounces",
+            "Use paddle edges to control ball direction",
+            "Catch falling power-ups for advantages",
+            "Clear a path to upper bricks early"
+        ]
+        
+        tip_y = section_y + 35
+        for i, tip in enumerate(tips):
+            # Draw tip icon
+            tip_icon_rect = pygame.Rect(WIDTH//2 - 180, tip_y, 15, 15)
+            pygame.draw.rect(screen, YELLOW, tip_icon_rect, border_radius=7)
+            pygame.draw.rect(screen, WHITE, tip_icon_rect, 1, border_radius=7)  # White border
+            
+            # Draw tip number
+            num_text = SMALL_FONT.render(f"{i+1}", True, BLACK)
+            num_rect = num_text.get_rect(center=tip_icon_rect.center)
+            screen.blit(num_text, num_rect)
+            
+            # Draw tip text
+            tip_text = REGULAR_FONT.render(tip, True, CYAN)
+            tip_rect = tip_text.get_rect(midleft=(WIDTH//2 - 155, tip_y + 8))
+            screen.blit(tip_text, tip_rect)
+            
+            tip_y += 25
+        
+        # Start button with animation
+        button_pulse = 200 + int(55 * math.sin(elapsed_time / 200))
+        button_color = (0, button_pulse, 0)
+        button_rect = pygame.Rect(WIDTH//2 - 120, HEIGHT - 80, 240, 45)
+        pygame.draw.rect(screen, button_color, button_rect, border_radius=25)
+        pygame.draw.rect(screen, WHITE, button_rect, 2, border_radius=25)  # White border
+        
+        # Button text
+        button_text = SUBTITLE_FONT.render("START GAME", True, WHITE)
+        button_rect = button_text.get_rect(center=(WIDTH//2, HEIGHT - 58))
+        screen.blit(button_text, button_rect)
+        
+        # Hint text
+        hint_text = SMALL_FONT.render("PRESS SPACE TO BEGIN", True, WHITE)
+        hint_rect = hint_text.get_rect(center=(WIDTH//2, HEIGHT - 25))
+        screen.blit(hint_text, hint_rect)
+        
+        # Apply subtle scanlines for retro effect
+        screen.blit(scanlines, (0, 0))
+        
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True  # Continue to game
+                elif event.key == pygame.K_ESCAPE:
+                    return False
+        
+        # Control the animation speed
+        pygame.time.delay(20)
+    
+    return False
+
+# Function to show game manual (wrapper function)
+def show_game_manual():
+    return show_game_manual_page1()  # Start with page 1, which links to pages 2 and 3
 
 # Function to show welcome screen
 def show_welcome_screen():
@@ -397,33 +853,8 @@ def initialize_bricks(level):
 
 # Function to initialize obstacles based on level
 def initialize_obstacles(level):
-    obstacles = []
-    
-    if level >= 1:  # Only add obstacles from level 2 onwards
-        # Number of obstacles increases with level
-        num_obstacles = level - 1
-        
-        for i in range(num_obstacles):
-            # Create different obstacle types based on the index
-            if i % 3 == 0:  # Horizontal bar
-                width = random.randint(100, 200)
-                height = 15
-                x = random.randint(50, WIDTH - width - 50)
-                y = random.randint(150, HEIGHT - 200)
-                obstacles.append((pygame.Rect(x, y, width, height), PURPLE))
-            elif i % 3 == 1:  # Vertical bar
-                width = 15
-                height = random.randint(100, 150)
-                x = random.randint(50, WIDTH - width - 50)
-                y = random.randint(150, HEIGHT - 200)
-                obstacles.append((pygame.Rect(x, y, width, height), GRAY))
-            else:  # Small block
-                size = random.randint(20, 40)
-                x = random.randint(50, WIDTH - size - 50)
-                y = random.randint(150, HEIGHT - 200)
-                obstacles.append((pygame.Rect(x, y, size, size), GREEN))
-    
-    return obstacles
+    # No randomly generated obstacles - obstacles should only be grey bricks from level files
+    return []
 
 # Function to display "Press SPACE to Start" message
 def show_press_space_message():
@@ -485,11 +916,13 @@ def check_obstacle_collision(ball_rect):
             if min_overlap_side in ['left', 'right']:
                 # Horizontal collision (side hit)
                 ball_dx = -ball_dx
-                ball_x = obstacle.right + BALL_RADIUS if min_overlap_side == 'left' else obstacle.left - BALL_RADIUS
+                # Add small offset to prevent sticking
+                ball_x = obstacle.right + BALL_RADIUS + 1 if min_overlap_side == 'left' else obstacle.left - BALL_RADIUS - 1
             else:
                 # Vertical collision (top/bottom hit)
                 ball_dy = -ball_dy
-                ball_y = obstacle.bottom + BALL_RADIUS if min_overlap_side == 'top' else obstacle.top - BALL_RADIUS
+                # Add small offset to prevent sticking
+                ball_y = obstacle.bottom + BALL_RADIUS + 1 if min_overlap_side == 'top' else obstacle.top - BALL_RADIUS - 1
             
             return True
     
@@ -500,14 +933,24 @@ def check_brick_collision(ball_rect, bricks):
     collision_occurred = False
     score_increment = 0
     new_ball_dx, new_ball_dy = ball_dx, ball_dy
+    spawn_power_up = False
+    power_up_position = (0, 0)
 
     for i, (brick, color, unbreakable) in enumerate(bricks[:]):
         if ball_rect.colliderect(brick):
             collision_occurred = True
             
             if not unbreakable:
+                # Store brick position for potential power-up spawn
+                power_up_position = (brick.x + brick.width // 2, brick.y + brick.height // 2)
+                
+                # Remove brick and add score
                 bricks.pop(i)
                 score_increment = 10 * level
+                
+                # Chance to spawn a power-up (1 in power_up_spawn_chance)
+                if random.randint(1, power_up_spawn_chance) == 1:
+                    spawn_power_up = True
             
             # Calculate overlaps for precise collision direction
             overlaps = {
@@ -520,19 +963,21 @@ def check_brick_collision(ball_rect, bricks):
             # Find the smallest overlap to determine collision side
             min_overlap_side = min(overlaps, key=overlaps.get)
             
-            # Reflect ball based on collision side
+            # Reflect ball based on collision side with small offset to prevent sticking
             if min_overlap_side in ['left', 'right']:
                 # Horizontal collision (side hit)
                 new_ball_dx = -ball_dx
-                ball_x = brick.right + BALL_RADIUS if min_overlap_side == 'left' else brick.left - BALL_RADIUS
+                # Add a small offset to prevent sticking
+                ball_x = brick.right + BALL_RADIUS + 1 if min_overlap_side == 'left' else brick.left - BALL_RADIUS - 1
             else:
                 # Vertical collision (top/bottom hit)
                 new_ball_dy = -ball_dy
-                ball_y = brick.bottom + BALL_RADIUS if min_overlap_side == 'top' else brick.top - BALL_RADIUS
+                # Add a small offset to prevent sticking
+                ball_y = brick.bottom + BALL_RADIUS + 1 if min_overlap_side == 'top' else brick.top - BALL_RADIUS - 1
             
             break  # Only handle one brick collision per frame
     
-    return collision_occurred, bricks, score_increment, new_ball_dx, new_ball_dy
+    return collision_occurred, bricks, score_increment, new_ball_dx, new_ball_dy, spawn_power_up, power_up_position
 
 def check_level_complete(bricks):
     # Check if there are any breakable bricks left
@@ -744,21 +1189,463 @@ def show_high_scores():
     
     return True
 
+# Define additional colors
+PURPLE = (128, 0, 255)
+
+# Initialize particle system
+particles = []
+
+# Initialize power-up effect tracking
+power_up_effects = {
+    'extend': {'active': False, 'start_time': 0},
+    'speed': {'active': False, 'start_time': 0},
+    'life': {'active': False, 'start_time': 0},
+    'multi': {'active': False, 'start_time': 0},
+    'slow': {'active': False, 'start_time': 0},
+    'ghost': {'active': False, 'start_time': 0},
+    'magnet': {'active': False, 'start_time': 0}
+}
+
+# Initialize special ball states
+ball_is_ghost = False
+paddle_is_magnetic = False
+
+# Power-up system
+class PowerUp:
+    def __init__(self, x, y, type):
+        self.x = x
+        self.y = y
+        self.type = type
+        self.width = 20
+        self.height = 20
+        self.active = False
+        self.collected = False
+        self.start_time = 0
+        self.fall_speed = random.uniform(1.5, 3.0)  # Random fall speed for more dynamic gameplay
+        self.wobble_amount = random.uniform(0.5, 1.5)  # Random wobble for visual interest
+        self.wobble_speed = random.uniform(0.05, 0.1)  # Random wobble speed
+        self.wobble_offset = random.uniform(0, 6.28)  # Random starting phase
+        self.rotation = 0  # For rotating power-ups
+        
+        # Set properties based on power-up type
+        if self.type == 'extend':  # Green - extend paddle
+            self.duration = 12000  # 12 seconds
+            self.color = GREEN
+            self.shape = 'rect'  # Rectangle shape
+            self.icon = '⬅➡'  # Directional arrows icon
+        elif self.type == 'speed':  # Red - speed up ball
+            self.duration = 10000  # 10 seconds
+            self.color = RED
+            self.shape = 'circle'  # Circle shape
+            self.icon = '⚡'  # Lightning bolt icon
+        elif self.type == 'life':  # Blue - extra life
+            self.duration = 0  # Instant effect
+            self.color = BLUE
+            self.shape = 'heart'  # Heart shape
+            self.icon = '♥'  # Heart icon
+        elif self.type == 'multi':  # Yellow - multi-ball
+            self.duration = 15000  # 15 seconds
+            self.color = YELLOW
+            self.shape = 'circle'  # Circle shape
+            self.icon = '⚪'  # Circle icon
+        elif self.type == 'slow':  # Purple - slow ball
+            self.duration = 10000  # 10 seconds
+            self.color = PURPLE
+            self.shape = 'circle'  # Circle shape
+            self.icon = '⏱'  # Clock icon
+        elif self.type == 'ghost':  # Cyan - ghost ball (passes through bricks)
+            self.duration = 8000  # 8 seconds
+            self.color = CYAN
+            self.shape = 'diamond'  # Diamond shape
+            self.icon = '👻'  # Ghost icon
+        elif self.type == 'magnet':  # Magenta - magnetic paddle
+            self.duration = 10000  # 10 seconds
+            self.color = (255, 0, 255)  # Magenta
+            self.shape = 'rect'  # Rectangle shape
+            self.icon = '🧲'  # Magnet icon
+    
+    def update(self, current_time):
+        # Update position if not collected (falling)
+        if not self.collected and not self.active:
+            self.y += self.fall_speed
+            # Add wobble effect while falling
+            self.x += math.sin(current_time * self.wobble_speed + self.wobble_offset) * self.wobble_amount
+            # Rotate the power-up
+            self.rotation = (self.rotation + 2) % 360
+        
+        # For active power-ups with duration, check if they've expired
+        if self.active and self.duration > 0:
+            return current_time - self.start_time < self.duration
+        return True  # Power-ups with no duration (like extra life) stay active
+    
+    def get_rect(self):
+        return pygame.Rect(self.x, self.y, self.width, self.height)
+    
+    def draw(self, surface):
+        if not self.collected:
+            # Create a surface for rotation
+            power_up_surface = pygame.Surface((self.width + 6, self.height + 6), pygame.SRCALPHA)
+            
+            # Draw the power-up based on its shape
+            if self.shape == 'rect':
+                pygame.draw.rect(power_up_surface, self.color, (3, 3, self.width, self.height))
+                pygame.draw.rect(power_up_surface, WHITE, (3, 3, self.width, self.height), 1)
+            elif self.shape == 'circle':
+                pygame.draw.circle(power_up_surface, self.color, (self.width//2 + 3, self.height//2 + 3), self.width//2)
+                pygame.draw.circle(power_up_surface, WHITE, (self.width//2 + 3, self.height//2 + 3), self.width//2, 1)
+            elif self.shape == 'diamond':
+                points = [
+                    (self.width//2 + 3, 3),  # Top
+                    (self.width + 3, self.height//2 + 3),  # Right
+                    (self.width//2 + 3, self.height + 3),  # Bottom
+                    (3, self.height//2 + 3)  # Left
+                ]
+                pygame.draw.polygon(power_up_surface, self.color, points)
+                pygame.draw.polygon(power_up_surface, WHITE, points, 1)
+            elif self.shape == 'heart':
+                # Draw a heart shape
+                center_x, center_y = self.width//2 + 3, self.height//2 + 3
+                radius = self.width//2 - 2
+                
+                # Draw two circles for the top of the heart
+                pygame.draw.circle(power_up_surface, self.color, (center_x - radius//2, center_y - radius//2), radius//2)
+                pygame.draw.circle(power_up_surface, self.color, (center_x + radius//2, center_y - radius//2), radius//2)
+                
+                # Draw a triangle for the bottom of the heart
+                points = [
+                    (center_x - radius, center_y - radius//2),
+                    (center_x + radius, center_y - radius//2),
+                    (center_x, center_y + radius)
+                ]
+                pygame.draw.polygon(power_up_surface, self.color, points)
+                
+                # Draw outline
+                pygame.draw.circle(power_up_surface, WHITE, (center_x - radius//2, center_y - radius//2), radius//2, 1)
+                pygame.draw.circle(power_up_surface, WHITE, (center_x + radius//2, center_y - radius//2), radius//2, 1)
+                pygame.draw.polygon(power_up_surface, WHITE, points, 1)
+            
+            # Add a glow effect
+            glow_alpha = 100 + int(50 * math.sin(pygame.time.get_ticks() / 200))
+            glow_surface = pygame.Surface((self.width + 12, self.height + 12), pygame.SRCALPHA)
+            
+            if self.shape == 'rect':
+                pygame.draw.rect(glow_surface, (*self.color, glow_alpha), (3, 3, self.width + 6, self.height + 6))
+            elif self.shape == 'circle':
+                pygame.draw.circle(glow_surface, (*self.color, glow_alpha), (self.width//2 + 6, self.height//2 + 6), self.width//2 + 3)
+            elif self.shape == 'diamond' or self.shape == 'heart':
+                # Use a simple rect glow for complex shapes
+                pygame.draw.rect(glow_surface, (*self.color, glow_alpha), (3, 3, self.width + 6, self.height + 6), border_radius=8)
+            
+            # Rotate the power-up
+            rotated_surface = pygame.transform.rotate(power_up_surface, self.rotation)
+            rotated_rect = rotated_surface.get_rect(center=(self.width//2 + 3, self.height//2 + 3))
+            
+            # Blit the glow and rotated power-up
+            surface.blit(glow_surface, (self.x - 6, self.y - 6))
+            surface.blit(rotated_surface, (self.x - rotated_rect.width//2 + self.width//2, self.y - rotated_rect.height//2 + self.height//2))
+
+# Score popup system
+class ScorePopup:
+    def __init__(self, value, x, y):
+        self.value = value
+        self.x = x
+        self.y = y
+        self.alpha = 255  # Full opacity
+        self.timer = 0
+        self.duration = 60  # Frames to display (60 frames = 1 second at 60 FPS)
+        self.font = REGULAR_FONT
+        self.color = YELLOW
+        self.y_offset = 0  # For floating effect
+    
+    def update(self):
+        self.timer += 1
+        self.y_offset -= 0.5  # Float upward
+        
+        # Start fading out after 70% of duration
+        if self.timer > self.duration * 0.7:
+            fade_factor = 1 - ((self.timer - (self.duration * 0.7)) / (self.duration * 0.3))
+            self.alpha = max(0, int(255 * fade_factor))
+        
+        return self.timer < self.duration
+    
+    def draw(self, surface):
+        # Create text with current alpha
+        text = self.font.render(f"+{self.value}", True, self.color)
+        
+        # Create a surface with per-pixel alpha
+        text_surface = pygame.Surface(text.get_size(), pygame.SRCALPHA)
+        text_surface.fill((0, 0, 0, 0))  # Transparent background
+        text_surface.blit(text, (0, 0))
+        
+        # Apply alpha to the entire surface
+        text_surface.set_alpha(self.alpha)
+        
+        # Draw at position with floating effect
+        surface.blit(text_surface, (self.x - text.get_width()//2, self.y - 30 + self.y_offset))
+
+# Define power-up system functions
+def apply_power_up_effect(power_up_type):
+    global PADDLE_WIDTH, ball_dx, ball_dy, lives, original_paddle_width, max_lives, power_up_effects
+    current_time = pygame.time.get_ticks()
+    
+    # Update the power-up effects dictionary
+    power_up_effects[power_up_type] = {'active': True, 'start_time': current_time}
+    
+    # Play power-up sound effect
+    # pygame.mixer.Sound('powerup.wav').play()  # Uncomment if sound file exists
+    
+    # Apply the specific power-up effect
+    if power_up_type == 'extend':
+        # Extend paddle
+        PADDLE_WIDTH = original_paddle_width * 1.8  # Increased from 1.5 to 1.8
+        # Create a visual effect at the paddle
+        create_particle_effect(paddle_x + PADDLE_WIDTH//2, paddle_y, GREEN, 15)
+        
+    elif power_up_type == 'speed':
+        # Speed up ball with better control
+        current_speed = math.sqrt(ball_dx**2 + ball_dy**2)
+        target_speed = current_speed * 1.4  # Increased from 1.3 to 1.4
+        
+        # Normalize the direction vector and apply the new speed
+        if current_speed > 0:
+            ball_dx = (ball_dx / current_speed) * target_speed
+            ball_dy = (ball_dy / current_speed) * target_speed
+        
+        # Create a visual effect around the ball
+        create_particle_effect(ball_x, ball_y, RED, 10)
+        
+    elif power_up_type == 'life':
+        # Add extra life (up to max_lives) with visual feedback
+        if lives < max_lives:
+            lives += 1
+            # Create a heart particle effect
+            create_particle_effect(WIDTH//2, HEIGHT//2, BLUE, 20, 'heart')
+        
+    elif power_up_type == 'multi':
+        # Create additional balls with improved mechanics
+        global extra_balls
+        
+        # Limit the total number of balls to prevent glitching
+        max_balls = 4  # Increased from 3 to 4 maximum balls
+        current_ball_count = 1 + len(extra_balls)  # Main ball + existing extra balls
+        
+        # Only add new balls if we're under the limit
+        balls_to_add = min(3, max_balls - current_ball_count)  # Increased from 2 to 3 potential new balls
+        
+        # Create additional balls with better spread of angles
+        angle_offsets = [-30, 0, 30][:balls_to_add]  # Use only as many offsets as balls we need
+        
+        for angle_offset in angle_offsets:
+            # Calculate new velocities based on current ball's speed and the offset angle
+            current_speed = min(math.sqrt(ball_dx**2 + ball_dy**2), 6)  # Lower max speed to prevent glitches
+            angle = math.degrees(math.atan2(ball_dx, -ball_dy))  # Convert current direction to angle
+            new_angle = angle + angle_offset  # Add offset to create different trajectory
+            
+            # Convert back to velocity components
+            new_dx = current_speed * math.sin(math.radians(new_angle))
+            new_dy = -current_speed * math.cos(math.radians(new_angle))
+            
+            # Make sure the new ball is positioned slightly away from the main ball to prevent collision issues
+            offset_x = 8 * math.sin(math.radians(new_angle))  # Increased from 5 to 8
+            offset_y = 8 * math.cos(math.radians(new_angle))  # Increased from 5 to 8
+            
+            # Add the new ball to extra_balls list with a unique ID
+            extra_balls.append({
+                'x': ball_x + offset_x,
+                'y': ball_y + offset_y,
+                'dx': new_dx,
+                'dy': new_dy,
+                'active': True,
+                'id': str(uuid.uuid4())[:8],  # Add unique ID to each ball
+                'ghost': False  # Track if this ball has ghost power
+            })
+            
+            # Create a burst effect at spawn point
+            create_particle_effect(ball_x + offset_x, ball_y + offset_y, YELLOW, 8)
+    
+    elif power_up_type == 'slow':
+        # Slow down ball for better control
+        current_speed = math.sqrt(ball_dx**2 + ball_dy**2)
+        target_speed = max(current_speed * 0.6, 3)  # Slow to 60% but maintain minimum speed
+        
+        # Normalize the direction vector and apply the new speed
+        if current_speed > 0:
+            ball_dx = (ball_dx / current_speed) * target_speed
+            ball_dy = (ball_dy / current_speed) * target_speed
+        
+        # Apply to extra balls too
+        for extra_ball in extra_balls:
+            if extra_ball['active']:
+                extra_speed = math.sqrt(extra_ball['dx']**2 + extra_ball['dy']**2)
+                if extra_speed > 0:
+                    slow_factor = 0.6
+                    extra_ball['dx'] = (extra_ball['dx'] / extra_speed) * (extra_speed * slow_factor)
+                    extra_ball['dy'] = (extra_ball['dy'] / extra_speed) * (extra_speed * slow_factor)
+        
+        # Create a visual effect
+        create_particle_effect(ball_x, ball_y, PURPLE, 12, 'clock')
+    
+    elif power_up_type == 'ghost':
+        # Ghost ball - passes through bricks without breaking them
+        global ball_is_ghost
+        ball_is_ghost = True
+        
+        # Apply to extra balls too
+        for extra_ball in extra_balls:
+            if extra_ball['active']:
+                extra_ball['ghost'] = True
+        
+        # Create a visual effect
+        create_particle_effect(ball_x, ball_y, CYAN, 15, 'ghost')
+    
+    elif power_up_type == 'magnet':
+        # Magnetic paddle - attracts the ball slightly
+        global paddle_is_magnetic
+        paddle_is_magnetic = True
+        
+        # Create a visual effect
+        create_particle_effect(paddle_x + PADDLE_WIDTH//2, paddle_y, (255, 0, 255), 12, 'magnet')
+
+# Function to create particle effects for power-ups
+def create_particle_effect(x, y, color, count, shape='circle'):
+    global particles
+    
+    for _ in range(count):
+        # Random velocity
+        angle = random.uniform(0, 2 * math.pi)
+        speed = random.uniform(1, 3)
+        velocity = [speed * math.cos(angle), speed * math.sin(angle)]
+        
+        # Random size
+        size = random.randint(2, 6)
+        
+        # Random lifetime
+        lifetime = random.randint(20, 40)
+        
+        # Add particle
+        particles.append({
+            'x': x,
+            'y': y,
+            'velocity': velocity,
+            'color': color,
+            'size': size,
+            'lifetime': lifetime,
+            'shape': shape
+        })
+
+def remove_power_up_effect(power_up_type):
+    global PADDLE_WIDTH, ball_dx, ball_dy, original_paddle_width, extra_balls, ball_is_ghost, paddle_is_magnetic, power_up_effects
+    
+    # Update the power-up effects dictionary
+    if power_up_type in power_up_effects:
+        power_up_effects[power_up_type]['active'] = False
+    
+    # Remove the specific power-up effect
+    if power_up_type == 'extend':
+        PADDLE_WIDTH = original_paddle_width
+        # Create a visual effect at the paddle
+        create_particle_effect(paddle_x + PADDLE_WIDTH//2, paddle_y, (100, 150, 100), 5)
+        
+    elif power_up_type == 'speed':
+        # Return ball to normal speed with smooth transition
+        current_speed = math.sqrt(ball_dx**2 + ball_dy**2)
+        target_speed = current_speed / 1.4
+        
+        # Normalize the direction vector and apply the new speed
+        if current_speed > 0:
+            ball_dx = (ball_dx / current_speed) * target_speed
+            ball_dy = (ball_dy / current_speed) * target_speed
+        
+    elif power_up_type == 'multi':
+        # Clear all extra balls when multi-ball power-up expires
+        # Create a fade-out effect for each ball before clearing
+        for extra_ball in extra_balls:
+            if extra_ball['active']:
+                create_particle_effect(extra_ball['x'], extra_ball['y'], (200, 200, 100), 8)
+        
+        extra_balls.clear()
+    
+    elif power_up_type == 'slow':
+        # Return ball to normal speed
+        current_speed = math.sqrt(ball_dx**2 + ball_dy**2)
+        target_speed = current_speed / 0.6
+        
+        # Normalize the direction vector and apply the new speed
+        if current_speed > 0:
+            ball_dx = (ball_dx / current_speed) * target_speed
+            ball_dy = (ball_dy / current_speed) * target_speed
+        
+        # Apply to extra balls too
+        for extra_ball in extra_balls:
+            if extra_ball['active']:
+                extra_speed = math.sqrt(extra_ball['dx']**2 + extra_ball['dy']**2)
+                if extra_speed > 0:
+                    speed_factor = 1 / 0.6
+                    extra_ball['dx'] = (extra_ball['dx'] / extra_speed) * (extra_speed * speed_factor)
+                    extra_ball['dy'] = (extra_ball['dy'] / extra_speed) * (extra_speed * speed_factor)
+    
+    elif power_up_type == 'ghost':
+        # Remove ghost ball effect
+        ball_is_ghost = False
+        
+        # Remove from extra balls too
+        for extra_ball in extra_balls:
+            if extra_ball['active']:
+                extra_ball['ghost'] = False
+        
+        # Create a visual effect
+        create_particle_effect(ball_x, ball_y, (100, 200, 200), 8)
+    
+    elif power_up_type == 'magnet':
+        # Remove magnetic paddle effect
+        paddle_is_magnetic = False
+        
+        # Create a visual effect
+        create_particle_effect(paddle_x + PADDLE_WIDTH//2, paddle_y, (150, 50, 150), 5)
+
 # Main game loop
 running = True
 game_started = False
 game_over = False
 game_paused = False
 current_game_id = None
+showed_manual = False  # Track if we've shown the manual
+extra_balls = []  # List to store additional balls for multi-ball power-up
 
 # Show welcome screen first
 running, current_game_id = show_welcome_screen()
+if running:
+    # Show game manual after welcome screen
+    showed_manual = show_game_manual()
+    if not showed_manual:
+        running = False
+
 selecting_difficulty = running
 score = 0
 level = 1
 lives = 3
+max_lives = 5  # Cap maximum lives at 5
 selecting_difficulty = True  # New state for difficulty selection
 viewing_high_scores = False
+
+# Power-up variables
+active_power_ups = []  # List to store active power-ups
+power_up_types = ['extend', 'speed', 'life', 'multi']
+power_up_spawn_chance = 15  # 1 in 15 chance to spawn a power-up
+power_up_weights = {'extend': 30, 'speed': 30, 'life': 10, 'multi': 30}  # Lower chance for extra life
+power_up_effects = {
+    'extend': {'active': False, 'start_time': 0, 'duration': 10000},  # 10 seconds
+    'speed': {'active': False, 'start_time': 0, 'duration': 8000},     # 8 seconds
+    'life': {'active': False, 'start_time': 0, 'duration': 0},         # Instant
+    'multi': {'active': False, 'start_time': 0, 'duration': 15000}     # 15 seconds
+}
+
+# Original paddle width to restore after power-up expires
+original_paddle_width = PADDLE_WIDTH
+original_ball_speed = 0  # Will be set when the game starts
+
+# List to store active score popups
+active_score_popups = []
 
 bricks = initialize_bricks(level)
 obstacles = initialize_obstacles(level)
@@ -810,7 +1697,7 @@ while running:
                 # Show level up message with arcade style
                 # Darken screen
                 overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-                overlay.fill((0, 0, 0, 180))
+                overlay.fill((0, 0, 0, 180))  # Semi-transparent black
                 screen.blit(overlay, (0, 0))
                 
                 # Draw level up text with neon glow
@@ -958,18 +1845,38 @@ while running:
         pygame.draw.line(screen, CYAN, (x_pos, paddle_y), (x_pos, paddle_y + PADDLE_HEIGHT), 2)
     
     # Draw ball with arcade-style glow
-    # Outer glow
-    for offset in range(5, 0, -1):
-        glow_alpha = 30 * offset
+    # Draw ball with glow effect
+    for offset in range(3, 0, -1):
+        glow_alpha = 40 + 20 * offset
         pygame.draw.circle(screen, (255, 255, 100, glow_alpha), 
                           (int(ball_x), int(ball_y)), BALL_RADIUS + offset, 1)
     
-    # Main ball
     pygame.draw.circle(screen, YELLOW, (int(ball_x), int(ball_y)), BALL_RADIUS)
     
-    # Highlight effect (makes ball look more 3D)
+    # Add a small highlight to the ball for 3D effect
     pygame.draw.circle(screen, WHITE, (int(ball_x - BALL_RADIUS/3), int(ball_y - BALL_RADIUS/3)), 
-                      BALL_RADIUS/3)
+                      BALL_RADIUS//3)
+    
+    # Draw extra balls from multi-ball power-up
+    for extra_ball in extra_balls:
+        if extra_ball['active']:
+            # Ensure ball coordinates are within screen bounds to prevent rendering glitches
+            ball_x_pos = max(BALL_RADIUS, min(WIDTH - BALL_RADIUS, int(extra_ball['x'])))
+            ball_y_pos = max(BALL_RADIUS + 50, min(HEIGHT - BALL_RADIUS, int(extra_ball['y'])))
+            
+            # Draw extra ball with subtle glow effect (reduced to prevent visual clutter)
+            for offset in range(2, 0, -1):
+                glow_alpha = 30 + 15 * offset
+                pygame.draw.circle(screen, (255, 255, 100, glow_alpha), 
+                                 (ball_x_pos, ball_y_pos), BALL_RADIUS + offset, 1)
+            
+            # Draw the extra ball
+            pygame.draw.circle(screen, YELLOW, (ball_x_pos, ball_y_pos), BALL_RADIUS)
+            
+            # Add a small highlight to the extra ball for 3D effect
+            pygame.draw.circle(screen, WHITE, 
+                             (ball_x_pos - BALL_RADIUS//3, ball_y_pos - BALL_RADIUS//3), 
+                             BALL_RADIUS//3)
 
     # Display score, level, and lives with arcade-style UI
     # Create arcade-style score panel at top
@@ -1092,26 +1999,176 @@ while running:
         high_scores_hint = pygame.font.SysFont("comicsansms", 24).render("Press H to view High Scores", True, YELLOW)
         screen.blit(high_scores_hint, ((WIDTH - high_scores_hint.get_width()) // 2, HEIGHT // 2 + 50))
         
-        # Allow paddle movement before game starts
+        # Allow paddle movement before game starts with enhanced controls
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT] and paddle_x > 0:
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and paddle_x > 0:
             paddle_x -= paddle_speed
-        if keys[pygame.K_RIGHT] and paddle_x < WIDTH - PADDLE_WIDTH:
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and paddle_x < WIDTH - PADDLE_WIDTH:
             paddle_x += paddle_speed
     else:
         # Only process game logic if not paused
         if not game_paused:
-            # Paddle movement
+            # Paddle movement with enhanced controls
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT] and paddle_x > 0:
+            # Left movement with LEFT arrow or A key
+            if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and paddle_x > 0:
                 paddle_x -= paddle_speed
-            if keys[pygame.K_RIGHT] and paddle_x < WIDTH - PADDLE_WIDTH:
+            # Right movement with RIGHT arrow or D key
+            if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and paddle_x < WIDTH - PADDLE_WIDTH:
                 paddle_x += paddle_speed
 
             # Ball movement
             if ball_dx != 0 or ball_dy != 0:  
                 ball_x += ball_dx
                 ball_y += ball_dy
+                
+                # Move extra balls if multi-ball power-up is active
+                new_extra_balls = []
+                
+                # Process all balls but with controlled rendering and physics
+                for extra_ball in extra_balls:
+                    if extra_ball['active']:
+                        # Move the extra ball with controlled speed
+                        # Check if ball speed is too high and normalize it
+                        current_speed = math.sqrt(extra_ball['dx']**2 + extra_ball['dy']**2)
+                        if current_speed > 8:  # Reduced max speed for extra balls to prevent glitches
+                            speed_factor = 8 / current_speed
+                            extra_ball['dx'] *= speed_factor
+                            extra_ball['dy'] *= speed_factor
+                        
+                        # Ensure minimum speed to prevent balls from getting stuck
+                        if current_speed < 2:
+                            speed_factor = 2 / current_speed if current_speed > 0 else 1
+                            extra_ball['dx'] *= speed_factor
+                            extra_ball['dy'] *= speed_factor
+                            
+                        # Apply movement
+                        extra_ball['x'] += extra_ball['dx']
+                        extra_ball['y'] += extra_ball['dy']
+                        
+                        # Handle collisions with screen borders for extra balls
+                        if extra_ball['x'] - BALL_RADIUS <= 0:
+                            extra_ball['x'] = BALL_RADIUS
+                            extra_ball['dx'] = -extra_ball['dx']
+                        elif extra_ball['x'] + BALL_RADIUS >= WIDTH:
+                            extra_ball['x'] = WIDTH - BALL_RADIUS
+                            extra_ball['dx'] = -extra_ball['dx']
+                            
+                        # Top border collision for extra balls
+                        if extra_ball['y'] - BALL_RADIUS <= 50:
+                            extra_ball['y'] = 50 + BALL_RADIUS
+                            extra_ball['dy'] = -extra_ball['dy']
+                            
+                        # Create a rect for the extra ball for collision detection
+                        extra_ball_rect = pygame.Rect(
+                            extra_ball['x'] - BALL_RADIUS, 
+                            extra_ball['y'] - BALL_RADIUS, 
+                            BALL_RADIUS * 2, BALL_RADIUS * 2
+                        )
+                        
+                        # Check paddle collision for extra balls
+                        if extra_ball_rect.colliderect(paddle_rect) and extra_ball['dy'] > 0:
+                            relative_intersect_x = (extra_ball['x'] - (paddle_x + PADDLE_WIDTH/2)) / (PADDLE_WIDTH/2)
+                            bounce_angle = relative_intersect_x * 60
+                            current_speed = math.sqrt(extra_ball['dx']**2 + extra_ball['dy']**2)
+                            extra_ball['dx'] = current_speed * math.sin(math.radians(bounce_angle))
+                            extra_ball['dy'] = -current_speed * math.cos(math.radians(bounce_angle))
+                            # Add small offset to prevent sticking
+                            extra_ball['y'] = paddle_y - BALL_RADIUS - 1
+                        
+                        # Check obstacle collision for extra balls
+                        for obstacle, color in obstacles:
+                            if extra_ball_rect.colliderect(obstacle):
+                                # Calculate overlaps for precise collision direction
+                                overlaps = {
+                                    'left': obstacle.right - extra_ball_rect.left,
+                                    'right': extra_ball_rect.right - obstacle.left,
+                                    'top': obstacle.bottom - extra_ball_rect.top,
+                                    'bottom': extra_ball_rect.bottom - obstacle.top
+                                }
+                                
+                                # Find the smallest overlap to determine collision side
+                                min_overlap_side = min(overlaps, key=overlaps.get)
+                                
+                                # Reflect ball based on collision side
+                                if min_overlap_side in ['left', 'right']:
+                                    # Horizontal collision (side hit)
+                                    extra_ball['dx'] = -extra_ball['dx']
+                                    # Add small offset to prevent sticking
+                                    extra_ball['x'] = obstacle.right + BALL_RADIUS + 1 if min_overlap_side == 'left' else obstacle.left - BALL_RADIUS - 1
+                                else:
+                                    # Vertical collision (top/bottom hit)
+                                    extra_ball['dy'] = -extra_ball['dy']
+                                    # Add small offset to prevent sticking
+                                    extra_ball['y'] = obstacle.bottom + BALL_RADIUS + 1 if min_overlap_side == 'top' else obstacle.top - BALL_RADIUS - 1
+                        
+                        # Check brick collision for extra balls
+                        # Create a custom function to handle extra ball brick collisions
+                        def check_extra_ball_brick_collision(ball_rect, extra_ball):
+                            collision_occurred = False
+                            score_increment = 0
+                            spawn_power_up = False
+                            power_up_position = (0, 0)
+                            
+                            for i, (brick, color, unbreakable) in enumerate(bricks[:]):
+                                if ball_rect.colliderect(brick):
+                                    collision_occurred = True
+                                    
+                                    if not unbreakable:
+                                        # Store brick position for potential power-up spawn
+                                        power_up_position = (brick.x + brick.width // 2, brick.y + brick.height // 2)
+                                        
+                                        # Remove brick and add score
+                                        bricks.pop(i)
+                                        score_increment = 10 * level
+                                        
+                                        # Chance to spawn a power-up (1 in power_up_spawn_chance)
+                                        if random.randint(1, power_up_spawn_chance) == 1:
+                                            spawn_power_up = True
+                                    
+                                    # Calculate overlaps for precise collision direction
+                                    overlaps = {
+                                        'left': brick.right - ball_rect.left,
+                                        'right': ball_rect.right - brick.left,
+                                        'top': brick.bottom - ball_rect.top,
+                                        'bottom': ball_rect.bottom - brick.top
+                                    }
+                                    
+                                    # Find the smallest overlap to determine collision side
+                                    min_overlap_side = min(overlaps, key=overlaps.get)
+                                    
+                                    # Reflect ball based on collision side with small offset to prevent sticking
+                                    if min_overlap_side in ['left', 'right']:
+                                        # Horizontal collision (side hit)
+                                        extra_ball['dx'] = -extra_ball['dx']
+                                        # Add a small offset to prevent sticking
+                                        extra_ball['x'] = brick.right + BALL_RADIUS + 1 if min_overlap_side == 'left' else brick.left - BALL_RADIUS - 1
+                                    else:
+                                        # Vertical collision (top/bottom hit)
+                                        extra_ball['dy'] = -extra_ball['dy']
+                                        # Add a small offset to prevent sticking
+                                        extra_ball['y'] = brick.bottom + BALL_RADIUS + 1 if min_overlap_side == 'top' else brick.top - BALL_RADIUS - 1
+                                    
+                                    return collision_occurred, score_increment, spawn_power_up, power_up_position
+                            
+                            return False, 0, False, (0, 0)
+                        
+                        # Use the custom function for extra ball brick collisions
+                        collision, score_bonus, spawn_power_up, power_up_position = check_extra_ball_brick_collision(extra_ball_rect, extra_ball)
+                        if collision:
+                            score += score_bonus
+                            
+                            # Create score popup at collision point
+                            if score_bonus > 0:
+                                active_score_popups.append(ScorePopup(score_bonus, extra_ball['x'], extra_ball['y']))
+                        
+                        # Check if extra ball falls below screen
+                        if extra_ball['y'] + BALL_RADIUS < HEIGHT:
+                            new_extra_balls.append(extra_ball)
+                        # If an extra ball falls, we don't lose a life - it just disappears
+                
+                # Update the extra_balls list with only active balls
+                extra_balls = new_extra_balls
 
         # Ball collision with screen borders
         if ball_x - BALL_RADIUS <= 0:  
@@ -1120,71 +2177,49 @@ while running:
         elif ball_x + BALL_RADIUS >= WIDTH:  
             ball_x = WIDTH - BALL_RADIUS
             ball_dx = -ball_dx
-            
-        # Top border collision - fix to prevent ball from disappearing
+
         if ball_y - BALL_RADIUS <= 50:  # Use 50 instead of 0 to account for the top UI panel
             ball_y = 50 + BALL_RADIUS
             ball_dy = -ball_dy
-            
-            # Add visual feedback for top collision
-            pygame.draw.line(screen, CYAN, (ball_x - 20, 50), (ball_x + 20, 50), 3)
-            pygame.display.update(pygame.Rect(ball_x - 20, 48, 40, 5))
 
         # Create a ball rect for collision detection
         ball_rect = pygame.Rect(ball_x - BALL_RADIUS, ball_y - BALL_RADIUS, BALL_RADIUS * 2, BALL_RADIUS * 2)
-        
-        # Ball collision with paddle - with arcade-style effects
+
+        # Ball collision with paddle
         paddle_rect = pygame.Rect(paddle_x, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT)
         if ball_rect.colliderect(paddle_rect) and ball_dy > 0:
-            # Calculate relative intersection point on the paddle
             relative_intersect_x = (ball_x - (paddle_x + PADDLE_WIDTH/2)) / (PADDLE_WIDTH/2)
-            
-            # Calculate new angle based on where it hits the paddle (between -60 and 60 degrees)
             bounce_angle = relative_intersect_x * 60
-            
-            # Calculate ball speed based on current velocity
             current_speed = math.sqrt(ball_dx**2 + ball_dy**2)
-            
-            # Convert angle to velocity components
             ball_dx = current_speed * math.sin(math.radians(bounce_angle))
             ball_dy = -current_speed * math.cos(math.radians(bounce_angle))
-            
-            # Ensure ball is above paddle after collision
-            ball_y = paddle_y - BALL_RADIUS
-            
-            # Add paddle hit visual effects
-            # Flash the paddle briefly
-            pygame.draw.rect(screen, WHITE, paddle_rect)
-            pygame.display.update(paddle_rect)
-            
-            # Draw impact particles
-            for _ in range(10):
-                particle_x = ball_x
-                particle_y = paddle_y
-                particle_size = random.randint(1, 3)
-                particle_color = random.choice([CYAN, WHITE, YELLOW])
-                pygame.draw.rect(screen, particle_color, 
-                               (particle_x - particle_size//2, 
-                                particle_y - particle_size//2, 
-                                particle_size, particle_size))
+            # Add small offset to prevent sticking
+            ball_y = paddle_y - BALL_RADIUS - 1
 
         # Ball collision with obstacles
         check_obstacle_collision(ball_rect)
 
-        # Check brick collision with arcade-style effects
-        collision, bricks, score_bonus, ball_dx, ball_dy = check_brick_collision(ball_rect, bricks)
+        # Ball collision with bricks
+        collision, bricks, score_bonus, ball_dx, ball_dy, spawn_power_up, power_up_position = check_brick_collision(ball_rect, bricks)
         if collision:
-            score += score_bonus
-            
-            # Show score popup at collision point
-            if score_bonus > 0:
-                score_popup_font = REGULAR_FONT
-                score_popup = score_popup_font.render(f"+{score_bonus}", True, YELLOW)
-                screen.blit(score_popup, (ball_x - score_popup.get_width()//2, ball_y - 30))
-                pygame.display.update(pygame.Rect(ball_x - score_popup.get_width()//2, 
-                                                ball_y - 30, 
-                                                score_popup.get_width(), 
-                                                score_popup.get_height()))
+            # If ghost ball is active, don't break the brick but still bounce
+            if not ball_is_ghost or power_up_effects['ghost']['active'] == False:
+                score += score_bonus
+                active_score_popups.append(ScorePopup(score_bonus, power_up_position[0], power_up_position[1]))
+                
+                if spawn_power_up:
+                    # Randomly choose a power-up type with weighted probabilities
+                    power_up_types = ['extend', 'speed', 'life', 'multi', 'slow', 'ghost', 'magnet']
+                    weights = [20, 20, 10, 15, 15, 10, 10]  # Adjust these weights to balance gameplay
+                    power_up_type = random.choices(
+                        population=power_up_types,
+                        weights=weights,
+                        k=1
+                    )[0]
+                    
+                    # Create and add the power-up
+                    new_power_up = PowerUp(power_up_position[0], power_up_position[1], power_up_type)
+                    active_power_ups.append(new_power_up)
                 
                 # Draw brick break particles
                 for _ in range(15):
@@ -1212,43 +2247,87 @@ while running:
 
         # Ball falls below screen - lose a life
         if ball_y + BALL_RADIUS >= HEIGHT:
-            lives -= 1
-            if lives <= 0:
-                game_over = True
-                # Save high score when game is over
-                save_high_score(current_game_id, score, difficulty)
+            # Check if there are any active extra balls from multi-ball power-up
+            if extra_balls:
+                # If we have extra balls, make one of them the main ball
+                # Find the ball that's most centered on the screen to make it the main ball
+                center_x = WIDTH / 2
+                closest_ball_idx = 0
+                closest_distance = abs(extra_balls[0]['x'] - center_x)
+                
+                for i in range(1, len(extra_balls)):
+                    distance = abs(extra_balls[i]['x'] - center_x)
+                    if distance < closest_distance:
+                        closest_distance = distance
+                        closest_ball_idx = i
+                
+                # Take the selected ball and make it the main ball
+                new_main_ball = extra_balls.pop(closest_ball_idx)
+                ball_x = new_main_ball['x']
+                ball_y = new_main_ball['y']
+                ball_dx = new_main_ball['dx']
+                ball_dy = new_main_ball['dy']
+                
+                # Ensure the ball speed is reasonable
+                current_speed = math.sqrt(ball_dx**2 + ball_dy**2)
+                if current_speed > 10:
+                    speed_factor = 10 / current_speed
+                    ball_dx *= speed_factor
+                    ball_dy *= speed_factor
+                
+                # Remove the multi-ball power-up effect but keep the balls
+                for power_up in active_power_ups:
+                    if power_up.type == 'multi' and power_up.active:
+                        power_up.active = False
+                        power_up_effects['multi']['active'] = False
             else:
-                # Show life lost message with arcade style
-                # Flash screen red
-                flash = pygame.Surface((WIDTH, HEIGHT))
-                flash.fill(RED)
-                for alpha in range(100, 0, -20):  # Fade out
-                    flash.set_alpha(alpha)
-                    screen.blit(flash, (0, 0))
-                    pygame.display.flip()
-                    pygame.time.delay(30)
+                # No extra balls, lose a life
+                lives -= 1
+                # Remove all power-ups (both falling and active ones)
+                for power_up in active_power_ups:
+                    if power_up.active and power_up.duration > 0:
+                        # Remove effect of active power-ups
+                        remove_power_up_effect(power_up.type)
                 
-                # Draw life lost message
-                overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-                overlay.fill((0, 0, 0, 150))
-                screen.blit(overlay, (0, 0))
+                # Clear all power-ups
+                active_power_ups.clear()
                 
-                # Draw warning text with flashing effect
-                for i in range(3):  # Flash 3 times
-                    text = SUBTITLE_FONT.render("BALL LOST", True, RED)
-                    screen.blit(text, ((WIDTH - text.get_width()) // 2, HEIGHT // 2 - 20))
+                if lives <= 0:
+                    game_over = True
+                    # Save high score when game is over
+                    save_high_score(current_game_id, score, difficulty)
+                else:
+                    # Show life lost message with arcade style
+                    # Flash screen red
+                    flash = pygame.Surface((WIDTH, HEIGHT))
+                    flash.fill(RED)
+                    for alpha in range(100, 0, -20):  # Fade out
+                        flash.set_alpha(alpha)
+                        screen.blit(flash, (0, 0))
+                        pygame.display.flip()
+                        pygame.time.delay(30)
                     
-                    lives_text = REGULAR_FONT.render(f"LIVES REMAINING: {lives}", True, YELLOW)
-                    screen.blit(lives_text, ((WIDTH - lives_text.get_width()) // 2, HEIGHT // 2 + 20))
-                    
-                    pygame.display.flip()
-                    pygame.time.delay(200)
-                    
-                    # Clear and redraw background
+                    # Draw life lost message
+                    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 150))
                     screen.blit(overlay, (0, 0))
-                    pygame.display.flip()
-                    pygame.time.delay(200)
-                reset_ball()
+                    
+                    # Draw warning text with flashing effect
+                    for i in range(3):  # Flash 3 times
+                        text = SUBTITLE_FONT.render("BALL LOST", True, RED)
+                        screen.blit(text, ((WIDTH - text.get_width()) // 2, HEIGHT // 2 - 20))
+                        
+                        lives_text = REGULAR_FONT.render(f"LIVES REMAINING: {lives}", True, YELLOW)
+                        screen.blit(lives_text, ((WIDTH - lives_text.get_width()) // 2, HEIGHT // 2 + 20))
+                        
+                        pygame.display.flip()
+                        pygame.time.delay(200)
+                        
+                        # Clear and redraw background
+                        screen.blit(overlay, (0, 0))
+                        pygame.display.flip()
+                        pygame.time.delay(200)
+                    reset_ball()
 
         # Show hint if ball not launched
         if ball_dx == 0 and ball_dy == 0 and not game_over:
@@ -1256,6 +2335,118 @@ while running:
             hint_text = hint_font.render("Press SPACE to launch ball", True, ORANGE)
             screen.blit(hint_text, ((WIDTH - hint_text.get_width()) // 2, HEIGHT // 2 + 50))
 
+    # Draw and update all active score popups
+    if not game_paused:
+        # Update and draw particles
+        new_particles = []
+        for particle in particles:
+            # Update position
+            particle['x'] += particle['velocity'][0]
+            particle['y'] += particle['velocity'][1]
+            
+            # Decrease lifetime
+            particle['lifetime'] -= 1
+            
+            # Keep particle if it's still alive
+            if particle['lifetime'] > 0:
+                # Calculate alpha based on remaining lifetime
+                alpha = int(255 * (particle['lifetime'] / 40))
+                
+                # Draw particle based on its shape
+                if particle['shape'] == 'circle':
+                    pygame.draw.circle(screen, (*particle['color'], alpha), (int(particle['x']), int(particle['y'])), particle['size'])
+                elif particle['shape'] == 'heart':
+                    # Draw a simple heart shape
+                    size = particle['size']
+                    x, y = int(particle['x']), int(particle['y'])
+                    pygame.draw.circle(screen, (*particle['color'], alpha), (x - size//2, y - size//2), size//2)
+                    pygame.draw.circle(screen, (*particle['color'], alpha), (x + size//2, y - size//2), size//2)
+                    points = [(x - size, y - size//2), (x + size, y - size//2), (x, y + size)]
+                    pygame.draw.polygon(screen, (*particle['color'], alpha), points)
+                elif particle['shape'] == 'ghost':
+                    # Draw a simple ghost shape
+                    size = particle['size']
+                    pygame.draw.circle(screen, (*particle['color'], alpha), (int(particle['x']), int(particle['y'])), size)
+                    pygame.draw.rect(screen, (*particle['color'], alpha), (int(particle['x']) - size, int(particle['y']), size*2, size))
+                elif particle['shape'] == 'clock':
+                    # Draw a clock shape
+                    pygame.draw.circle(screen, (*particle['color'], alpha), (int(particle['x']), int(particle['y'])), particle['size'])
+                    # Draw clock hands
+                    center_x, center_y = int(particle['x']), int(particle['y'])
+                    hand_length = particle['size'] * 0.7
+                    pygame.draw.line(screen, (255, 255, 255, alpha), (center_x, center_y), 
+                                    (center_x + hand_length * math.cos(particle['lifetime'] * 0.2), 
+                                     center_y + hand_length * math.sin(particle['lifetime'] * 0.2)), 1)
+                elif particle['shape'] == 'magnet':
+                    # Draw a magnet shape
+                    size = particle['size']
+                    pygame.draw.rect(screen, (*particle['color'], alpha), (int(particle['x']) - size//2, int(particle['y']) - size, size, size*2))
+                else:  # Default to square
+                    pygame.draw.rect(screen, (*particle['color'], alpha), 
+                                    (int(particle['x']) - particle['size']//2, 
+                                     int(particle['y']) - particle['size']//2, 
+                                     particle['size'], particle['size']))
+                
+                new_particles.append(particle)
+        
+        # Update particles list
+        particles[:] = new_particles
+        
+        # Update and draw score popups
+        new_active_popups = []
+        for popup in active_score_popups:
+            if popup.update():  # Returns False when popup expires
+                popup.draw(screen)
+                new_active_popups.append(popup)
+        active_score_popups = new_active_popups
+        
+        # Draw and update power-ups
+        current_time = pygame.time.get_ticks()
+        new_active_power_ups = []
+        
+        for power_up in active_power_ups:
+            if not power_up.collected:
+                # Draw falling power-up
+                power_up.y += 2  # Power-up falls down
+                power_up.draw(screen)
+                
+                # Check if power-up is collected
+                if pygame.Rect(paddle_x, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT).colliderect(power_up.get_rect()):
+                    power_up.collected = True
+                    power_up.active = True
+                    power_up.start_time = current_time
+                    
+                    # Apply power-up effect
+                    apply_power_up_effect(power_up.type)
+                
+                # Remove power-ups that fall off screen
+                if power_up.y < HEIGHT:
+                    new_active_power_ups.append(power_up)
+            else:
+                # Update active power-up duration
+                if power_up.update(current_time):
+                    new_active_power_ups.append(power_up)
+                else:
+                    # Power-up expired, remove its effect
+                    remove_power_up_effect(power_up.type)
+        
+        active_power_ups = new_active_power_ups
+        
+        # Draw active power-up timers at the bottom of the screen
+        x_offset = 50
+        for power_up in active_power_ups:
+            if power_up.active and power_up.duration > 0:
+                remaining = max(0, (power_up.duration - (current_time - power_up.start_time)) / 1000)
+                if remaining > 0:
+                    # Draw power-up icon
+                    pygame.draw.rect(screen, power_up.color, (x_offset, HEIGHT - 30, 15, 15))
+                    
+                    # Draw timer text
+                    timer_text = REGULAR_FONT.render(f"{remaining:.1f}s", True, WHITE)
+                    screen.blit(timer_text, (x_offset + 20, HEIGHT - 28))
+                    
+                    x_offset += 80  # Space between power-up timers
+    
     # Apply scanlines for retro effect
     screen.blit(scanlines, (0, 0))
     
